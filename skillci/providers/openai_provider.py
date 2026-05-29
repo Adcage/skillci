@@ -1,7 +1,7 @@
 import json
 import os
 
-from skillci.evaluator.prompt import JUDGE_PROMPT
+from skillci.evaluator.prompt import get_system_prompt, get_user_prompt
 from skillci.providers.base import JudgeProvider
 from skillci.schema.config import JudgeConfig, SkillTestCase
 from skillci.schema.result import LLMTriggerResult
@@ -21,7 +21,10 @@ class OpenAIJudgeProvider(JudgeProvider):
                 "OPENAI_API_KEY is not set. Use --mode local or configure OPENAI_API_KEY."
             )
 
-        prompt = JUDGE_PROMPT.format(
+        base_url = config.base_url or os.getenv("OPENAI_BASE_URL")
+
+        system_prompt = get_system_prompt()
+        user_prompt = get_user_prompt(
             skill_name=skill.name,
             skill_description=skill.description,
             skill_body_excerpt=skill.body[:1200],
@@ -30,20 +33,27 @@ class OpenAIJudgeProvider(JudgeProvider):
 
         try:
             from openai import OpenAI
+        except ImportError as exc:
+            raise RuntimeError(
+                "openai package is not installed. "
+                "Run `pip install skillci[llm]` to enable LLM mode."
+            ) from exc
 
-            client = OpenAI(api_key=api_key, timeout=config.timeout)
-            response = client.responses.create(
+        try:
+            client_kwargs = {"api_key": api_key, "timeout": config.timeout}
+            if base_url:
+                client_kwargs["base_url"] = base_url
+            client = OpenAI(**client_kwargs)
+            response = client.chat.completions.create(
                 model=config.model,
                 temperature=config.temperature,
-                input=[
-                    {
-                        "role": "user",
-                        "content": prompt,
-                    }
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
                 ],
             )
 
-            raw_text = response.output_text
+            raw_text = response.choices[0].message.content
             data = json.loads(raw_text)
             should_trigger = data.get("should_trigger")
             confidence = data.get("confidence")
