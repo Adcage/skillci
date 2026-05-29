@@ -1,6 +1,6 @@
-from enum import StrEnum
-
 from pydantic import BaseModel, Field
+
+from skillci.utils.compat import StrEnum
 
 
 class Severity(StrEnum):

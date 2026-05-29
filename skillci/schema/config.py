@@ -1,7 +1,8 @@
-from enum import StrEnum
 from pathlib import Path
 
 from pydantic import BaseModel, Field
+
+from skillci.utils.compat import StrEnum
 
 
 class RunMode(StrEnum):
@@ -18,6 +19,7 @@ class ThresholdConfig(BaseModel):
 
 class JudgeConfig(BaseModel):
     provider: str = "openai"
+    base_url: str | None = None
     model: str = "gpt-4.1-mini"
     temperature: float = 0
     timeout: int = 30
