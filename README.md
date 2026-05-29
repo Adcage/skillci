@@ -275,6 +275,20 @@ Regression Report
 | `OPENAI_API_KEY` | API key for OpenAI-compatible LLM providers |
 | `OPENAI_BASE_URL` | Default API endpoint (overridden by `judge.base_url`) |
 
+### Local Config Override
+
+If you want to keep sensitive settings (like API keys) out of version control, create a `skillci.local.yaml` file in the same directory as `skillci.yaml`. It will be automatically loaded and merged, but is gitignored by default.
+
+```yaml
+# skillci.local.yaml (not committed)
+judge:
+  provider: openai
+  base_url: https://your-api.com/v1
+  model: your-model-name
+```
+
+The local config overrides any matching fields in `skillci.yaml`. You don't need to change any commands — it loads automatically.
+
 ### LLM Mode
 
 To use LLM mode, install the optional dependency:

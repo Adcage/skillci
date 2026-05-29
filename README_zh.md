@@ -275,6 +275,20 @@ Regression Report
 | `OPENAI_API_KEY` | OpenAI 兼容 API 的密钥 |
 | `OPENAI_BASE_URL` | 默认 API 地址（被 `judge.base_url` 覆盖） |
 
+### 本地配置覆盖
+
+如果你不想把敏感配置（如 API 密钥）提交到版本控制，可以在 `skillci.yaml` 同目录下创建 `skillci.local.yaml` 文件。它会自动加载并覆盖对应字段，且默认被 gitignore。
+
+```yaml
+# skillci.local.yaml（不提交）
+judge:
+  provider: openai
+  base_url: https://your-api.com/v1
+  model: your-model-name
+```
+
+本地配置会覆盖 `skillci.yaml` 中的同名字段，不需要修改任何命令，自动生效。
+
 ### LLM 模式配置
 
 安装可选依赖：
