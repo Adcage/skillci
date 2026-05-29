@@ -9,6 +9,16 @@ class ConfigParseError(ValueError):
     pass
 
 
+def _deep_merge(base: dict, override: dict) -> dict:
+    result = base.copy()
+    for key, value in override.items():
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            result[key] = _deep_merge(result[key], value)
+        else:
+            result[key] = value
+    return result
+
+
 def parse_config(config_path: Path) -> SkillCIConfig:
     config_path = config_path.resolve()
     if not config_path.exists():
@@ -18,6 +28,14 @@ def parse_config(config_path: Path) -> SkillCIConfig:
         raw = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
     except yaml.YAMLError as exc:
         raise ConfigParseError(f"Invalid YAML config: {config_path}") from exc
+
+    local_config_path = config_path.parent / "skillci.local.yaml"
+    if local_config_path.exists():
+        try:
+            local_raw = yaml.safe_load(local_config_path.read_text(encoding="utf-8")) or {}
+        except yaml.YAMLError as exc:
+            raise ConfigParseError(f"Invalid YAML config: {local_config_path}") from exc
+        raw = _deep_merge(raw, local_raw)
 
     if "skill" not in raw:
         raise ConfigParseError("Missing required config field: skill")

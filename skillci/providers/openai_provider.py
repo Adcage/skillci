@@ -15,7 +15,7 @@ class OpenAIJudgeProvider(JudgeProvider):
         case: SkillTestCase,
         config: JudgeConfig,
     ) -> LLMTriggerResult:
-        api_key = os.getenv("OPENAI_API_KEY")
+        api_key = config.api_key or os.getenv("OPENAI_API_KEY")
         if not api_key:
             raise RuntimeError(
                 "OPENAI_API_KEY is not set. Use --mode local or configure OPENAI_API_KEY."
