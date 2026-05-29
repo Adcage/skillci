@@ -6,6 +6,8 @@
 [![Ruff](https://img.shields.io/badge/Lint-Ruff-brightgreen.svg)](https://docs.astral.sh/ruff/)
 [![Release](https://img.shields.io/badge/release-v0.1.0-orange.svg)](https://github.com/your-username/skillci/releases)
 
+English | [中文](README_zh.md)
+
 **Test and regression-check your Agent Skills before shipping.**
 
 Agent Skills are becoming reusable software assets, but most skills are shipped without tests. SkillCI helps you check structure, resource references, risky commands, and trigger behavior before publishing a Skill.
