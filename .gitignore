@@ -11,6 +11,7 @@ build/
 .pytest_cache/
 .ruff_cache/
 .skillci/
+skillci.local.yaml
 
 docs/superpowers/
 docs/strategy/
