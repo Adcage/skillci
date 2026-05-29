@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+dist/
+build/
+.venv/
+.venv-*/
+.pytest_cache/
+.ruff_cache/
+.skillci/
+
+docs/superpowers/
+docs/strategy/
+
