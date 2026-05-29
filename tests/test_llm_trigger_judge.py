@@ -29,5 +29,7 @@ def test_openai_provider_requires_api_key(monkeypatch):
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     provider = OpenAIJudgeProvider()
 
+    judge_config = config.judge.model_copy(update={"api_key": None})
+
     with pytest.raises(RuntimeError, match="OPENAI_API_KEY"):
-        provider.judge_trigger(skill, case, config.judge)
+        provider.judge_trigger(skill, case, judge_config)
