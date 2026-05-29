@@ -1,33 +1,28 @@
-PROMPT_VERSION = "v0.1"
+from pathlib import Path
+
+PROMPT_VERSION = "v0.2"
+
+_PROMPTS_DIR = Path(__file__).parent / "prompts"
 
 
-JUDGE_PROMPT = """You are evaluating whether an Agent Skill should be used for a user request.
+def _load_prompt(filename: str) -> str:
+    return (_PROMPTS_DIR / filename).read_text(encoding="utf-8").strip()
 
-Your task is NOT to solve the user request.
-Your task is ONLY to decide whether the given skill should be used.
 
-Skill name:
-{skill_name}
+def get_system_prompt() -> str:
+    return _load_prompt("judge_system.md")
 
-Skill description:
-{skill_description}
 
-Skill body excerpt:
-{skill_body_excerpt}
-
-User request:
-{user_input}
-
-Decision criteria:
-- Return true only if the skill is clearly relevant to the user request.
-- Return false if the request is unrelated, too broad, or only weakly related.
-- Do not over-trigger the skill.
-- Prefer false when uncertain.
-
-Return valid JSON only:
-{{
-  "should_trigger": true or false,
-  "confidence": number between 0 and 1,
-  "reason": "short explanation"
-}}
-"""
+def get_user_prompt(
+    skill_name: str,
+    skill_description: str,
+    skill_body_excerpt: str,
+    user_input: str,
+) -> str:
+    template = _load_prompt("judge_user.md")
+    return template.format(
+        skill_name=skill_name,
+        skill_description=skill_description,
+        skill_body_excerpt=skill_body_excerpt,
+        user_input=user_input,
+    )
