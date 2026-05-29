@@ -1,0 +1,23 @@
+skill: .
+mode: local
+thresholds:
+  trigger_score: 0.45
+  trigger_f1: 0.8
+  llm_confidence: 0.7
+cases:
+  - name: should_trigger_for_spring_controller
+    input: 根据这个 Spring Controller 生成 OpenAPI 文档
+    expected_trigger: true
+    tags: [api, spring, openapi]
+  - name: should_trigger_for_fastapi_routes
+    input: 把这些 FastAPI 路由整理成接口说明
+    expected_trigger: true
+    tags: [api, fastapi, documentation]
+  - name: should_not_trigger_for_sql_optimization
+    input: 帮我优化这个 SQL 查询
+    expected_trigger: false
+    tags: [sql, database]
+  - name: should_not_trigger_for_css_explanation
+    input: 解释一下这个 CSS 样式
+    expected_trigger: false
+    tags: [frontend, css]
