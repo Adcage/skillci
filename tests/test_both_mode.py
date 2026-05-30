@@ -139,3 +139,75 @@ def test_both_mode_includes_all_metrics():
     assert report.llm_metrics.precision >= 0
     assert report.llm_metrics.recall >= 0
     assert report.llm_metrics.f1 >= 0
+
+
+def test_both_mode_disagreement_has_correct_fields():
+    class DisagreeingProvider(JudgeProvider):
+        def judge_trigger(
+            self, skill: Skill, case: SkillTestCase, config: JudgeConfig
+        ) -> LLMTriggerResult:
+            return LLMTriggerResult(
+                case_name=case.name,
+                expected_trigger=case.expected_trigger,
+                actual_trigger=not case.expected_trigger,
+                confidence=0.75,
+                passed=False,
+                reason="mock disagreement",
+            )
+
+    llm_trigger_judge._PROVIDERS["mock"] = DisagreeingProvider
+
+    report = run_both_test(
+        Path("examples/api-doc-writer"), provider_name="mock", use_cache=False
+    )
+
+    assert report.judge_disagreement_count > 0
+    for d in report.judge_disagreements:
+        assert d.case_name
+        assert isinstance(d.expected_trigger, bool)
+        assert isinstance(d.local_actual, bool)
+        assert d.llm_actual is not None
+        assert d.local_score is not None
+        assert d.llm_confidence is not None
+
+
+def test_both_mode_passed_based_on_local_results():
+    class DisagreeingProvider(JudgeProvider):
+        def judge_trigger(
+            self, skill: Skill, case: SkillTestCase, config: JudgeConfig
+        ) -> LLMTriggerResult:
+            return LLMTriggerResult(
+                case_name=case.name,
+                expected_trigger=case.expected_trigger,
+                actual_trigger=not case.expected_trigger,
+                confidence=0.75,
+                passed=False,
+                reason="mock disagreement",
+            )
+
+    llm_trigger_judge._PROVIDERS["mock"] = DisagreeingProvider
+
+    report = run_both_test(
+        Path("examples/api-doc-writer"), provider_name="mock", use_cache=False
+    )
+
+    assert report.passed is True
+    assert all(r.passed for r in report.local_results)
+
+
+def test_both_mode_llm_average_confidence():
+    report = run_both_test(
+        Path("examples/api-doc-writer"), provider_name="mock", use_cache=False
+    )
+
+    assert report.llm_average_confidence is not None
+    assert 0 <= report.llm_average_confidence <= 1
+
+
+def test_both_mode_static_health_passed():
+    report = run_both_test(
+        Path("examples/api-doc-writer"), provider_name="mock", use_cache=False
+    )
+
+    assert report.static_health is not None
+    assert report.static_health.passed is True

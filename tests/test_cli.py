@@ -60,6 +60,11 @@ def test_test_command_supports_compare_latest():
 
 
 def test_test_command_accepts_no_cache_flag():
+    import skillci.evaluator.llm_trigger_judge as judge_module
+    from skillci.providers.mock_provider import MockJudgeProvider
+    original_providers = judge_module._PROVIDERS.copy()
+    judge_module._PROVIDERS["mock"] = MockJudgeProvider
+
     result = runner.invoke(
         app,
         ["test", "examples/api-doc-writer", "--mode", "llm", "--provider", "mock", "--no-cache"],
@@ -67,6 +72,8 @@ def test_test_command_accepts_no_cache_flag():
 
     assert result.exit_code == 0
     assert "LLM Trigger Check" in result.output
+
+    judge_module._PROVIDERS = original_providers
 
 
 def test_test_command_no_cache_flag_in_help():
@@ -142,3 +149,72 @@ def test_report_command_unsupported_format():
     )
 
     assert result.exit_code == 2
+
+
+def test_lint_command_for_invalid_path():
+    result = runner.invoke(app, ["lint", "nonexistent/path"])
+
+    assert result.exit_code != 0
+
+
+def test_test_command_for_invalid_path():
+    result = runner.invoke(app, ["test", "nonexistent/path", "--mode", "local"])
+
+    assert result.exit_code != 0
+
+
+def test_snapshot_command():
+    result = runner.invoke(app, ["snapshot", "examples/api-doc-writer"])
+
+    assert result.exit_code == 0
+    assert "Saved baseline snapshot" in result.output
+
+
+def test_version_flag():
+    result = runner.invoke(app, ["--version"])
+
+    assert result.exit_code == 0
+    assert "skillci" in result.output
+
+
+def test_test_command_json_output():
+    import json
+
+    result = runner.invoke(
+        app,
+        ["test", "examples/api-doc-writer", "--mode", "local", "--json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output)
+    assert "skill_name" in payload
+    assert "local_results" in payload
+
+
+def test_test_command_llm_json_output():
+    import json
+
+    result = runner.invoke(
+        app,
+        ["test", "examples/api-doc-writer", "--mode", "llm", "--provider", "mock", "--json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output)
+    assert "llm_results" in payload
+    assert "llm_metrics" in payload
+
+
+def test_test_command_both_json_output():
+    import json
+
+    result = runner.invoke(
+        app,
+        ["test", "examples/api-doc-writer", "--mode", "both", "--provider", "mock", "--json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output)
+    assert "local_results" in payload
+    assert "llm_results" in payload
+    assert "judge_disagreement_count" in payload

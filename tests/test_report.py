@@ -9,8 +9,10 @@ from skillci.runner import run_local_test
 from skillci.schema.report import SkillCIReport
 from skillci.schema.result import (
     JudgeDisagreement,
+    LLMTriggerResult,
     LocalTriggerResult,
     StaticHealthResult,
+    TriggerMetrics,
 )
 
 runner = CliRunner()
@@ -234,3 +236,132 @@ def test_terminal_report_shows_llm_section(capsys):
     captured = capsys.readouterr()
     assert "LLM Trigger Check" in captured.out
     assert "LLM Summary" in captured.out
+
+
+def test_terminal_report_shows_llm_error(capsys):
+    report = SkillCIReport(
+        skill_name="test-skill",
+        skill_path="/tmp/test",
+        static_health=StaticHealthResult(passed=True, issues=[]),
+        llm_results=[
+            LLMTriggerResult(
+                case_name="error-case",
+                expected_trigger=True,
+                actual_trigger=None,
+                passed=False,
+                error="API timeout",
+            )
+        ],
+        passed=False,
+    )
+    render_report(report)
+
+    captured = capsys.readouterr()
+    assert "LLM Trigger Check" in captured.out
+    assert "ERROR error-case" in captured.out
+    assert "API timeout" in captured.out
+
+
+def test_terminal_report_no_metrics(capsys):
+    report = SkillCIReport(
+        skill_name="test-skill",
+        skill_path="/tmp/test",
+        static_health=StaticHealthResult(passed=True, issues=[]),
+        passed=True,
+    )
+    render_report(report)
+
+    captured = capsys.readouterr()
+    assert "Summary" not in captured.out
+    assert "LLM Summary" not in captured.out
+
+
+def test_markdown_report_empty_results():
+    report = SkillCIReport(
+        skill_name="test-skill",
+        skill_path="/tmp/test",
+        static_health=StaticHealthResult(passed=True, issues=[]),
+        passed=True,
+    )
+    content = render_markdown(report)
+
+    assert "# SkillCI Report" in content
+    assert "## Static Health" in content
+    assert "## Trigger Check" not in content
+    assert "## LLM Trigger Check" not in content
+    assert "## Local Metrics" not in content
+    assert "## LLM Metrics" not in content
+    assert "## Judge Disagreements" not in content
+
+
+def test_markdown_report_with_llm_error():
+    from skillci.schema.result import LLMTriggerResult
+
+    report = SkillCIReport(
+        skill_name="test-skill",
+        skill_path="/tmp/test",
+        static_health=StaticHealthResult(passed=True, issues=[]),
+        llm_results=[
+            LLMTriggerResult(
+                case_name="error-case",
+                expected_trigger=True,
+                actual_trigger=None,
+                passed=False,
+                error="Connection failed",
+            )
+        ],
+        passed=False,
+    )
+    content = render_markdown(report)
+
+    assert "## LLM Trigger Check" in content
+    assert "error-case" in content
+    assert "error" in content
+
+
+def test_github_markdown_empty_results():
+    report = SkillCIReport(
+        skill_name="test-skill",
+        skill_path="/tmp/test",
+        static_health=StaticHealthResult(passed=True, issues=[]),
+        passed=True,
+    )
+    content = render_github_markdown(report)
+
+    assert "## SkillCI Check" in content
+    assert "| Static Health | passed |" in content
+    assert "| Local F1 |" not in content
+    assert "| LLM F1 |" not in content
+    assert "| Judge Disagreements | 0 |" in content
+
+
+def test_github_markdown_all_failed():
+    report = SkillCIReport(
+        skill_name="test-skill",
+        skill_path="/tmp/test",
+        static_health=StaticHealthResult(passed=False, issues=[]),
+        local_results=[
+            LocalTriggerResult(
+                case_name="case1",
+                expected_trigger=True,
+                actual_trigger=False,
+                passed=False,
+                trigger_score=0.3,
+                reason="low score",
+            )
+        ],
+        local_metrics=TriggerMetrics(
+            true_positive=0,
+            false_negative=1,
+            precision=0,
+            recall=0,
+            f1=0,
+            accuracy=0,
+        ),
+        passed=False,
+    )
+    content = render_github_markdown(report)
+
+    assert "| Static Health | failed |" in content
+    assert "| Local F1 | 0.00 |" in content
+    assert "| Final Result | **failed** |" in content

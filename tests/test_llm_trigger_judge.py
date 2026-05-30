@@ -152,3 +152,143 @@ def test_error_result_not_cached(monkeypatch, tmp_path):
     from skillci.cache.cache_key import build_judge_cache_key
     cache_key = build_judge_cache_key(skill, case, judge_config)
     assert cache.get(cache_key) is None
+
+
+def test_provider_not_found_raises(monkeypatch):
+    import skillci.evaluator.llm_trigger_judge as judge_module
+
+    skill = parse_skill(Path("examples/api-doc-writer"))
+    config = parse_config(Path("examples/api-doc-writer/skillci.yaml"))
+    case = config.cases[0]
+
+    original_providers = judge_module._PROVIDERS.copy()
+    monkeypatch.setattr(judge_module, "_PROVIDERS", {"mock": original_providers["mock"]})
+    monkeypatch.setattr(judge_module, "_cache", None)
+
+    with pytest.raises(ValueError, match="Unsupported judge provider"):
+        run_llm_judge(
+            skill, case, config.thresholds,
+            provider_name="nonexistent_xyz",
+            judge_config=JudgeConfig(cache=False),
+            use_cache=False,
+        )
+
+
+def test_actual_trigger_none_marks_failed(monkeypatch):
+    from skillci.providers.base import JudgeProvider
+    from skillci.schema.result import LLMTriggerResult
+
+    skill = parse_skill(Path("examples/api-doc-writer"))
+    config = parse_config(Path("examples/api-doc-writer/skillci.yaml"))
+    case = config.cases[0]
+
+    class NoneProvider(JudgeProvider):
+        def judge_trigger(self, skill, case, config):
+            return LLMTriggerResult(
+                case_name=case.name,
+                expected_trigger=case.expected_trigger,
+                actual_trigger=None,
+                confidence=0.5,
+                passed=False,
+                reason="could not determine",
+            )
+
+    import skillci.evaluator.llm_trigger_judge as judge_module
+    original_providers = judge_module._PROVIDERS.copy()
+    new_providers = original_providers.copy()
+    new_providers["none_test"] = NoneProvider
+    monkeypatch.setattr(judge_module, "_PROVIDERS", new_providers)
+    monkeypatch.setattr(judge_module, "_cache", None)
+
+    result = run_llm_judge(
+        skill, case, config.thresholds,
+        provider_name="none_test",
+        judge_config=JudgeConfig(cache=False),
+        use_cache=False,
+    )
+
+    assert result.actual_trigger is None
+    assert result.passed is False
+    assert result.error == "LLM judge did not return should_trigger"
+
+
+def test_use_cache_false_skips_cache(monkeypatch, tmp_path):
+    from skillci.providers.mock_provider import MockJudgeProvider
+
+    skill = parse_skill(Path("examples/api-doc-writer"))
+    config = parse_config(Path("examples/api-doc-writer/skillci.yaml"))
+    case = config.cases[0]
+
+    cache = JudgeCache(cache_dir=tmp_path)
+    monkeypatch.setattr(llm_trigger_judge, "_cache", cache)
+
+    import skillci.evaluator.llm_trigger_judge as judge_module
+    original_providers = judge_module._PROVIDERS.copy()
+    judge_module._PROVIDERS["mock"] = MockJudgeProvider
+
+    call_count = 0
+    original_judge = MockJudgeProvider.judge_trigger
+
+    def counting_judge(self, skill, case, config):
+        nonlocal call_count
+        call_count += 1
+        return original_judge(self, skill, case, config)
+
+    monkeypatch.setattr(MockJudgeProvider, "judge_trigger", counting_judge)
+
+    judge_config = JudgeConfig(cache=True)
+
+    run_llm_judge(
+        skill, case, config.thresholds,
+        provider_name="mock", judge_config=judge_config, use_cache=False
+    )
+    assert call_count == 1
+
+    run_llm_judge(
+        skill, case, config.thresholds,
+        provider_name="mock", judge_config=judge_config, use_cache=False
+    )
+    assert call_count == 2
+
+    judge_module._PROVIDERS = original_providers
+
+
+def test_use_cache_true_uses_cache(monkeypatch, tmp_path):
+    from skillci.providers.mock_provider import MockJudgeProvider
+
+    skill = parse_skill(Path("examples/api-doc-writer"))
+    config = parse_config(Path("examples/api-doc-writer/skillci.yaml"))
+    case = config.cases[0]
+
+    cache = JudgeCache(cache_dir=tmp_path)
+    monkeypatch.setattr(llm_trigger_judge, "_cache", cache)
+
+    import skillci.evaluator.llm_trigger_judge as judge_module
+    original_providers = judge_module._PROVIDERS.copy()
+    judge_module._PROVIDERS["mock"] = MockJudgeProvider
+
+    call_count = 0
+    original_judge = MockJudgeProvider.judge_trigger
+
+    def counting_judge(self, skill, case, config):
+        nonlocal call_count
+        call_count += 1
+        return original_judge(self, skill, case, config)
+
+    monkeypatch.setattr(MockJudgeProvider, "judge_trigger", counting_judge)
+
+    judge_config = JudgeConfig(cache=True)
+
+    run_llm_judge(
+        skill, case, config.thresholds,
+        provider_name="mock", judge_config=judge_config, use_cache=True
+    )
+    assert call_count == 1
+
+    run_llm_judge(
+        skill, case, config.thresholds,
+        provider_name="mock", judge_config=judge_config, use_cache=True
+    )
+    assert call_count == 1
+
+    judge_module._PROVIDERS = original_providers
