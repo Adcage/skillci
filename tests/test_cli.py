@@ -1,6 +1,11 @@
+import os
+
 from typer.testing import CliRunner
 
 from skillci.cli import app
+
+# 禁用 Rich 颜色输出，确保测试在所有环境下一致
+os.environ["NO_COLOR"] = "1"
 
 runner = CliRunner()
 
@@ -77,16 +82,11 @@ def test_test_command_accepts_no_cache_flag():
 
 
 def test_test_command_no_cache_flag_in_help():
-    import re
-
     result = runner.invoke(app, ["test", "--help"])
 
     assert result.exit_code == 0
-    # 使用正则表达式清除所有 ANSI 转义码
-    ansi_escape = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
-    clean_output = ansi_escape.sub("", result.output)
-    assert "no-cache" in clean_output
-    assert "Disable LLM judge cache" in clean_output
+    assert "--no-cache" in result.output
+    assert "Disable LLM judge cache" in result.output
 
 
 def test_test_command_runs_both_mode_for_example_skill():
