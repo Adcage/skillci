@@ -5,6 +5,8 @@ from skillci.evaluator.prompt import PROMPT_VERSION
 from skillci.schema.config import JudgeConfig, SkillTestCase
 from skillci.schema.skill import Skill
 
+BODY_EXCERPT_MAX_LENGTH = 500
+
 
 def build_judge_cache_key(
     skill: Skill,
@@ -14,7 +16,7 @@ def build_judge_cache_key(
     key_data = {
         "skill_name": skill.name,
         "skill_description": skill.description,
-        "skill_body_excerpt": skill.body[:500] if skill.body else "",
+        "skill_body_excerpt": skill.body[:BODY_EXCERPT_MAX_LENGTH] if skill.body else "",
         "case_name": case.name,
         "case_input": case.input,
         "provider": config.provider,

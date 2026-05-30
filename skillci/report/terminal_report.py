@@ -69,12 +69,14 @@ def render_report(report: SkillCIReport, console: Console | None = None) -> None
 
     if report.judge_disagreements:
         console.print("\nJudge Disagreements", style="bold yellow")
-        console.print(f"  Count: {report.judge_disagreement_count}")
+        console.print(f"  Count: {len(report.judge_disagreements)}")
         for d in report.judge_disagreements:
             console.print(
                 f"  DISAGREE {d.case_name}: local={d.local_actual}, "
                 f"llm={d.llm_actual}, expected={d.expected_trigger}"
             )
+            if d.reason:
+                console.print(f"    reason: {d.reason}")
 
     console.print("\nResult", style="bold")
     console.print("  passed" if report.passed else "  failed")

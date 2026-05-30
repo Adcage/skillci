@@ -32,7 +32,7 @@ def _make_report_with_disagreements() -> SkillCIReport:
                 matched_terms=["doc"],
             )
         ],
-        judge_disagreement_count=2,
+        judge_disagreement_count=3,
         judge_disagreements=[
             JudgeDisagreement(
                 case_name="case-a",
@@ -45,6 +45,14 @@ def _make_report_with_disagreements() -> SkillCIReport:
                 expected_trigger=False,
                 local_actual=False,
                 llm_actual=True,
+                reason="LLM misclassified trigger intent",
+            ),
+            JudgeDisagreement(
+                case_name="case-c",
+                expected_trigger=True,
+                local_actual=True,
+                llm_actual=None,
+                reason="LLM returned no verdict",
             ),
         ],
         passed=True,
@@ -90,9 +98,13 @@ def test_markdown_report_shows_disagreements():
     content = render_markdown(report)
 
     assert "## Judge Disagreements" in content
-    assert "Count: 2" in content
+    assert "Count: 3" in content
     assert "case-a" in content
     assert "case-b" in content
+    assert "case-c" in content
+    assert "LLM misclassified trigger intent" in content
+    assert "LLM returned no verdict" in content
+    assert "| Reason |" in content
 
 
 def test_markdown_report_no_disagreements_section_when_empty():
@@ -108,6 +120,9 @@ def test_terminal_report_shows_disagreements(capsys):
 
     captured = capsys.readouterr()
     assert "Judge Disagreements" in captured.out
-    assert "Count: 2" in captured.out
+    assert "Count: 3" in captured.out
     assert "DISAGREE case-a" in captured.out
     assert "DISAGREE case-b" in captured.out
+    assert "DISAGREE case-c" in captured.out
+    assert "reason: LLM misclassified trigger intent" in captured.out
+    assert "reason: LLM returned no verdict" in captured.out

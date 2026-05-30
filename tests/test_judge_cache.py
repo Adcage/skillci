@@ -86,9 +86,17 @@ def test_cache_miss_returns_none(tmp_path):
     assert cache.get("nonexistent") is None
 
 
-def test_cache_creates_directory(tmp_path):
+def test_cache_creates_directory_on_set(tmp_path):
     cache_dir = tmp_path / "nested" / "cache"
-    JudgeCache(cache_dir=cache_dir)
+    cache = JudgeCache(cache_dir=cache_dir)
+    assert not cache_dir.exists()
+    result = LLMTriggerResult(
+        case_name="test",
+        expected_trigger=True,
+        score=0.9,
+        reasoning="test",
+    )
+    cache.set("key", result)
     assert cache_dir.exists()
 
 
