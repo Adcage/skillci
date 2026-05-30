@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 
 from skillci.schema.result import (
+    JudgeDisagreement,
     LLMTriggerResult,
     LocalTriggerResult,
     StaticHealthResult,
@@ -17,4 +18,6 @@ class SkillCIReport(BaseModel):
     local_metrics: TriggerMetrics | None = None
     llm_metrics: TriggerMetrics | None = None
     llm_average_confidence: float | None = None
+    judge_disagreement_count: int = 0
+    judge_disagreements: list[JudgeDisagreement] = Field(default_factory=list)
     passed: bool

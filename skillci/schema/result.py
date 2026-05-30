@@ -53,3 +53,13 @@ class LLMTriggerResult(BaseModel):
     reason: str | None = None
     raw_response: str | None = None
     error: str | None = None
+
+
+class JudgeDisagreement(BaseModel):
+    case_name: str
+    expected_trigger: bool
+    local_actual: bool
+    llm_actual: bool | None
+    local_score: float | None = None
+    llm_confidence: float | None = None
+    reason: str | None = None

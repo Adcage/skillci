@@ -12,7 +12,7 @@ from skillci.report.terminal_report import (
     render_report,
     render_static_health,
 )
-from skillci.runner import run_lint, run_llm_test, run_local_test
+from skillci.runner import run_both_test, run_lint, run_llm_test, run_local_test
 from skillci.runner_init import run_init
 from skillci.runner_snapshot import run_snapshot
 
@@ -64,7 +64,7 @@ def snapshot(skill_path: Path) -> None:
 @app.command()
 def test(
     skill_path: Path,
-    mode: str = typer.Option("local", help="Trigger test mode: local or llm."),
+    mode: str = typer.Option("local", help="Trigger test mode: local, llm, or both."),
     json_output: bool = typer.Option(False, "--json", help="Output JSON report."),
     provider: str = typer.Option("openai", help="LLM judge provider. Use mock for tests."),
     compare: str | None = typer.Option(None, help="Compare with baseline."),  # noqa: B008
@@ -74,8 +74,10 @@ def test(
         report = run_local_test(skill_path)
     elif mode == "llm":
         report = run_llm_test(skill_path, provider_name=provider)
+    elif mode == "both":
+        report = run_both_test(skill_path, provider_name=provider)
     else:
-        typer.echo("Only --mode local and --mode llm are supported in v0.1.", err=True)
+        typer.echo(f"Unsupported mode: {mode}. Use local, llm, or both.", err=True)
         raise typer.Exit(2)
 
     if compare is not None and compare != "latest":
