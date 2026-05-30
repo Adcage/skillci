@@ -82,11 +82,15 @@ def test_test_command_accepts_no_cache_flag():
 
 
 def test_test_command_no_cache_flag_in_help():
+    import re
+
     result = runner.invoke(app, ["test", "--help"])
 
     assert result.exit_code == 0
-    assert "--no-cache" in result.output
-    assert "Disable LLM judge cache" in result.output
+    # 清除所有 ANSI 转义码后检查
+    clean = re.sub(r"\x1b\[[0-9;]*[a-zA-Z]", "", result.output)
+    assert "no-cache" in clean
+    assert "Disable LLM judge cache" in clean
 
 
 def test_test_command_runs_both_mode_for_example_skill():
