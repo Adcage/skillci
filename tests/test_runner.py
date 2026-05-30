@@ -44,3 +44,44 @@ def test_run_both_test_for_example_skill_with_mock():
     assert report.llm_average_confidence is not None
     assert isinstance(report.judge_disagreement_count, int)
     assert isinstance(report.judge_disagreements, list)
+
+
+def test_run_llm_test_with_use_cache_false():
+    report = run_llm_test(
+        Path("examples/api-doc-writer"), provider_name="mock", use_cache=False
+    )
+
+    assert report.skill_name == "api-doc-writer"
+    assert report.passed is True
+    assert len(report.llm_results) == 4
+    assert report.llm_metrics is not None
+
+
+def test_run_llm_test_with_use_cache_true():
+    report = run_llm_test(
+        Path("examples/api-doc-writer"), provider_name="mock", use_cache=True
+    )
+
+    assert report.skill_name == "api-doc-writer"
+    assert report.passed is True
+    assert len(report.llm_results) == 4
+
+
+def test_run_both_test_with_use_cache_false():
+    report = run_both_test(
+        Path("examples/api-doc-writer"), provider_name="mock", use_cache=False
+    )
+
+    assert report.skill_name == "api-doc-writer"
+    assert report.passed is True
+    assert len(report.local_results) == 4
+    assert len(report.llm_results) == 4
+
+
+def test_run_both_test_with_use_cache_true():
+    report = run_both_test(
+        Path("examples/api-doc-writer"), provider_name="mock", use_cache=True
+    )
+
+    assert report.skill_name == "api-doc-writer"
+    assert report.passed is True

@@ -198,3 +198,39 @@ def test_report_unsupported_format():
     )
 
     assert result.exit_code == 2
+
+
+def test_markdown_report_contains_llm_metrics():
+    from skillci.runner import run_both_test
+
+    report = run_both_test(
+        Path("examples/api-doc-writer"), provider_name="mock", use_cache=False
+    )
+    content = render_markdown(report)
+
+    assert "## LLM Metrics" in content
+    assert "## LLM Trigger Check" in content
+
+
+def test_github_markdown_with_llm_metrics():
+    from skillci.runner import run_both_test
+
+    report = run_both_test(
+        Path("examples/api-doc-writer"), provider_name="mock", use_cache=False
+    )
+    content = render_github_markdown(report)
+
+    assert "| LLM F1 |" in content
+
+
+def test_terminal_report_shows_llm_section(capsys):
+    from skillci.runner import run_both_test
+
+    report = run_both_test(
+        Path("examples/api-doc-writer"), provider_name="mock", use_cache=False
+    )
+    render_report(report)
+
+    captured = capsys.readouterr()
+    assert "LLM Trigger Check" in captured.out
+    assert "LLM Summary" in captured.out

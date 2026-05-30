@@ -61,6 +61,95 @@ def test_cache_key_varies_with_model():
     assert key1 != key2
 
 
+def test_cache_key_varies_with_skill_description():
+    case = SkillTestCase(name="case1", input="input", expected_trigger=True)
+    config = JudgeConfig()
+    skill1 = Skill(
+        name="test",
+        description="description A",
+        body="body",
+        path=Path("."),
+        skill_md_path=Path("./SKILL.md"),
+    )
+    skill2 = Skill(
+        name="test",
+        description="description B",
+        body="body",
+        path=Path("."),
+        skill_md_path=Path("./SKILL.md"),
+    )
+    key1 = build_judge_cache_key(skill1, case, config)
+    key2 = build_judge_cache_key(skill2, case, config)
+    assert key1 != key2
+
+
+def test_cache_key_varies_with_case_input():
+    skill = Skill(
+        name="test",
+        description="desc",
+        body="body",
+        path=Path("."),
+        skill_md_path=Path("./SKILL.md"),
+    )
+    config = JudgeConfig()
+    case1 = SkillTestCase(name="case1", input="input A", expected_trigger=True)
+    case2 = SkillTestCase(name="case1", input="input B", expected_trigger=True)
+    key1 = build_judge_cache_key(skill, case1, config)
+    key2 = build_judge_cache_key(skill, case2, config)
+    assert key1 != key2
+
+
+def test_cache_key_varies_with_provider():
+    skill = Skill(
+        name="test",
+        description="desc",
+        body="body",
+        path=Path("."),
+        skill_md_path=Path("./SKILL.md"),
+    )
+    case = SkillTestCase(name="case1", input="input", expected_trigger=True)
+    config1 = JudgeConfig(provider="openai")
+    config2 = JudgeConfig(provider="anthropic")
+    key1 = build_judge_cache_key(skill, case, config1)
+    key2 = build_judge_cache_key(skill, case, config2)
+    assert key1 != key2
+
+
+def test_cache_key_varies_with_base_url():
+    skill = Skill(
+        name="test",
+        description="desc",
+        body="body",
+        path=Path("."),
+        skill_md_path=Path("./SKILL.md"),
+    )
+    case = SkillTestCase(name="case1", input="input", expected_trigger=True)
+    config1 = JudgeConfig(base_url="https://api.openai.com/v1")
+    config2 = JudgeConfig(base_url="https://custom-api.example.com/v1")
+    key1 = build_judge_cache_key(skill, case, config1)
+    key2 = build_judge_cache_key(skill, case, config2)
+    assert key1 != key2
+
+
+def test_cache_key_includes_prompt_version():
+    from skillci.evaluator.prompt import PROMPT_VERSION
+
+    skill = Skill(
+        name="test",
+        description="desc",
+        body="body",
+        path=Path("."),
+        skill_md_path=Path("./SKILL.md"),
+    )
+    case = SkillTestCase(name="case1", input="input", expected_trigger=True)
+    config = JudgeConfig()
+    key = build_judge_cache_key(skill, case, config)
+
+    assert isinstance(key, str)
+    assert len(key) == 64
+    assert PROMPT_VERSION is not None
+
+
 def test_cache_set_and_get(tmp_path):
     cache = JudgeCache(cache_dir=tmp_path)
     result = LLMTriggerResult(

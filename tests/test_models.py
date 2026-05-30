@@ -1,7 +1,13 @@
 from pathlib import Path
 
 from skillci.schema.config import RunMode, SkillCIConfig, SkillTestCase
-from skillci.schema.result import LLMTriggerResult, LocalTriggerResult, Severity, TriggerMetrics
+from skillci.schema.result import (
+    JudgeDisagreement,
+    LLMTriggerResult,
+    LocalTriggerResult,
+    Severity,
+    TriggerMetrics,
+)
 from skillci.schema.skill import Skill
 
 
@@ -57,3 +63,51 @@ def test_llm_trigger_result_defaults():
 
     assert result.error is None
     assert result.raw_response is None
+
+
+def test_judge_disagreement_model():
+    disagreement = JudgeDisagreement(
+        case_name="test-case",
+        expected_trigger=True,
+        local_actual=True,
+        llm_actual=False,
+        local_score=0.85,
+        llm_confidence=0.72,
+        reason="local matched but LLM disagreed",
+    )
+
+    assert disagreement.case_name == "test-case"
+    assert disagreement.expected_trigger is True
+    assert disagreement.local_actual is True
+    assert disagreement.llm_actual is False
+    assert disagreement.local_score == 0.85
+    assert disagreement.llm_confidence == 0.72
+    assert disagreement.reason == "local matched but LLM disagreed"
+
+
+def test_judge_disagreement_with_llm_actual_none():
+    disagreement = JudgeDisagreement(
+        case_name="error-case",
+        expected_trigger=True,
+        local_actual=True,
+        llm_actual=None,
+    )
+
+    assert disagreement.llm_actual is None
+    assert disagreement.local_score is None
+    assert disagreement.llm_confidence is None
+    assert disagreement.reason is None
+
+
+def test_judge_disagreement_minimal_fields():
+    disagreement = JudgeDisagreement(
+        case_name="minimal",
+        expected_trigger=False,
+        local_actual=False,
+        llm_actual=True,
+    )
+
+    assert disagreement.case_name == "minimal"
+    assert disagreement.expected_trigger is False
+    assert disagreement.local_actual is False
+    assert disagreement.llm_actual is True
