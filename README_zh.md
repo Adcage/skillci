@@ -331,6 +331,12 @@ ruff check .
 
 ---
 
+## CI 集成
+
+参见 [GitHub Actions 指南](docs/github-actions.md) 了解 CI/CD 设置说明。
+
+---
+
 ## 当前限制
 
 - **`both` 模式尚未实现** — 目前只支持 `local` 和 `llm` 模式

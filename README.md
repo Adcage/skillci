@@ -331,6 +331,12 @@ Current status: **48 tests passing**, **ruff clean**.
 
 ---
 
+## CI Integration
+
+See [GitHub Actions Guide](docs/github-actions.md) for CI/CD setup instructions.
+
+---
+
 ## Current Limitations
 
 - **`both` mode is planned** — currently only `local` and `llm` modes are supported
