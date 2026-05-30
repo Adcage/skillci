@@ -134,6 +134,7 @@ def run_both_test(
                     llm_actual=llm.actual_trigger,
                     local_score=local.trigger_score,
                     llm_confidence=llm.confidence,
+                    reason=local.reason,
                 )
             )
 

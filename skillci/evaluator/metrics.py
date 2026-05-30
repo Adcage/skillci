@@ -1,9 +1,11 @@
 from collections.abc import Sequence
 
-from skillci.schema.result import LocalTriggerResult, TriggerMetrics
+from skillci.schema.result import LLMTriggerResult, LocalTriggerResult, TriggerMetrics
 
 
-def calculate_metrics(results: Sequence[LocalTriggerResult]) -> TriggerMetrics:
+def calculate_metrics(
+    results: Sequence[LocalTriggerResult | LLMTriggerResult],
+) -> TriggerMetrics:
     tp = sum(1 for result in results if result.expected_trigger and result.actual_trigger)
     fp = sum(1 for result in results if not result.expected_trigger and result.actual_trigger)
     tn = sum(1 for result in results if not result.expected_trigger and not result.actual_trigger)
