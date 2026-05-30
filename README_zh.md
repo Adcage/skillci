@@ -4,7 +4,7 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-yellow.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-48%20passed-brightgreen.svg)](#测试)
 [![Ruff](https://img.shields.io/badge/Lint-Ruff-brightgreen.svg)](https://docs.astral.sh/ruff/)
-[![Release](https://img.shields.io/badge/release-v0.1.0-orange.svg)](https://github.com/your-username/skillci/releases)
+[![Release](https://img.shields.io/badge/release-v0.1.2-orange.svg)](https://github.com/your-username/skillci/releases)
 
 [English](README.md) | 中文
 
@@ -257,6 +257,7 @@ Regression Report
 | `mode` | string | `local` | 测试模式：`local`、`llm`、`both` |
 | `judge.provider` | string | `openai` | LLM 提供商 |
 | `judge.base_url` | string | `null` | 自定义 API 地址 |
+| `judge.api_key` | string | `null` | API 密钥，设置后覆盖 `OPENAI_API_KEY` |
 | `judge.model` | string | `gpt-4.1-mini` | 模型名称 |
 | `judge.temperature` | float | `0` | 温度参数 |
 | `judge.timeout` | int | `30` | 超时秒数 |
@@ -283,11 +284,14 @@ Regression Report
 # skillci.local.yaml（不提交）
 judge:
   provider: openai
+  api_key: sk-...
   base_url: https://your-api.com/v1
   model: your-model-name
 ```
 
 本地配置会覆盖 `skillci.yaml` 中的同名字段，不需要修改任何命令，自动生效。
+
+**API 密钥优先级：** `skillci.local.yaml` 中的 `judge.api_key` > `skillci.yaml` 中的 `judge.api_key` > `OPENAI_API_KEY`
 
 ### LLM 模式配置
 
