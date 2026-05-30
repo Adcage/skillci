@@ -3,6 +3,7 @@ from pathlib import Path
 import typer
 from rich.console import Console
 
+from skillci import __version__
 from skillci.compare import run_compare
 from skillci.report.json_report import render_json
 from skillci.report.markdown_report import render_markdown
@@ -15,7 +16,27 @@ from skillci.runner import run_lint, run_llm_test, run_local_test
 from skillci.runner_init import run_init
 from skillci.runner_snapshot import run_snapshot
 
-app = typer.Typer(help="SkillCI: test Agent Skills before shipping.")
+
+def version_callback(value: bool) -> None:
+    if value:
+        typer.echo(f"skillci {__version__}")
+        raise typer.Exit()
+
+
+app = typer.Typer(
+    help="SkillCI: test Agent Skills before shipping.",
+    invoke_without_command=True,
+)
+
+
+@app.callback()
+def main(
+    version: bool = typer.Option(
+        False, "--version", "-v", help="Show version and exit.", is_eager=True
+    ),
+) -> None:
+    """SkillCI: test Agent Skills before shipping."""
+    version_callback(version)
 
 
 @app.command()
