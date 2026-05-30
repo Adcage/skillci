@@ -73,4 +73,20 @@ def render_markdown(report: SkillCIReport) -> str:
             lines.append(f"- Average Confidence: {report.llm_average_confidence}")
         lines.append("")
 
+    if report.judge_disagreements:
+        lines.append("## Judge Disagreements")
+        lines.append("")
+        lines.append(f"Count: {report.judge_disagreement_count}")
+        lines.append("")
+        lines.append("| Case | Expected | Local | LLM |")
+        lines.append("| --- | --- | --- | --- |")
+        for d in report.judge_disagreements:
+            lines.append(
+                f"| {d.case_name} "
+                f"| {d.expected_trigger} "
+                f"| {d.local_actual} "
+                f"| {d.llm_actual} |"
+            )
+        lines.append("")
+
     return "\n".join(lines)

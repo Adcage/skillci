@@ -67,6 +67,15 @@ def render_report(report: SkillCIReport, console: Console | None = None) -> None
         if report.llm_average_confidence is not None:
             console.print(f"  Average Confidence: {report.llm_average_confidence}")
 
+    if report.judge_disagreements:
+        console.print("\nJudge Disagreements", style="bold yellow")
+        console.print(f"  Count: {report.judge_disagreement_count}")
+        for d in report.judge_disagreements:
+            console.print(
+                f"  DISAGREE {d.case_name}: local={d.local_actual}, "
+                f"llm={d.llm_actual}, expected={d.expected_trigger}"
+            )
+
     console.print("\nResult", style="bold")
     console.print("  passed" if report.passed else "  failed")
 
