@@ -4,7 +4,7 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-yellow.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-48%20passed-brightgreen.svg)](#测试)
 [![Ruff](https://img.shields.io/badge/Lint-Ruff-brightgreen.svg)](https://docs.astral.sh/ruff/)
-[![Release](https://img.shields.io/badge/release-v0.1.2-orange.svg)](https://github.com/your-username/skillci/releases)
+[![Release](https://img.shields.io/badge/release-v0.2.0-orange.svg)](https://github.com/your-username/skillci/releases)
 
 [English](README.md) | 中文
 
