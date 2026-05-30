@@ -40,6 +40,7 @@ def run_llm_test(
     skill_path: Path,
     config_path: Path | None = None,
     provider_name: str = "openai",
+    use_cache: bool = True,
 ) -> SkillCIReport:
     skill = parse_skill(skill_path)
     config = parse_config(config_path or skill.path / "skillci.yaml")
@@ -52,6 +53,7 @@ def run_llm_test(
             config.thresholds,
             provider_name=provider_name,
             judge_config=config.judge,
+            use_cache=use_cache,
         )
         for case in config.cases
     ]
@@ -88,6 +90,7 @@ def run_both_test(
     skill_path: Path,
     config_path: Path | None = None,
     provider_name: str = "openai",
+    use_cache: bool = True,
 ) -> SkillCIReport:
     skill = parse_skill(skill_path)
     config = parse_config(config_path or skill.path / "skillci.yaml")
@@ -105,6 +108,7 @@ def run_both_test(
             config.thresholds,
             provider_name=provider_name,
             judge_config=config.judge,
+            use_cache=use_cache,
         )
         for case in config.cases
     ]

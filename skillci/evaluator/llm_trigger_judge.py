@@ -35,10 +35,13 @@ def run_llm_judge(
     thresholds: ThresholdConfig,
     provider_name: str = "openai",
     judge_config: JudgeConfig | None = None,
+    use_cache: bool = True,
 ) -> LLMTriggerResult:
     config = judge_config or JudgeConfig()
 
-    if config.cache:
+    effective_cache = use_cache and config.cache
+
+    if effective_cache:
         cache = _get_cache()
         cache_key = build_judge_cache_key(skill, case, config)
         cached = cache.get(cache_key)
@@ -74,7 +77,7 @@ def run_llm_judge(
             raw_response=result.raw_response,
         )
 
-    if config.cache:
+    if effective_cache:
         cache.set(cache_key, final_result)
 
     return final_result

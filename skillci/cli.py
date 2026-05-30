@@ -68,14 +68,15 @@ def test(
     json_output: bool = typer.Option(False, "--json", help="Output JSON report."),
     provider: str = typer.Option("openai", help="LLM judge provider. Use mock for tests."),
     compare: str | None = typer.Option(None, help="Compare with baseline."),  # noqa: B008
+    no_cache: bool = typer.Option(False, "--no-cache", help="Disable LLM judge cache."),
 ) -> None:
     """Run Skill trigger tests."""
     if mode == "local":
         report = run_local_test(skill_path)
     elif mode == "llm":
-        report = run_llm_test(skill_path, provider_name=provider)
+        report = run_llm_test(skill_path, provider_name=provider, use_cache=not no_cache)
     elif mode == "both":
-        report = run_both_test(skill_path, provider_name=provider)
+        report = run_both_test(skill_path, provider_name=provider, use_cache=not no_cache)
     else:
         typer.echo(f"Unsupported mode: {mode}. Use local, llm, or both.", err=True)
         raise typer.Exit(2)

@@ -57,3 +57,21 @@ def test_test_command_supports_compare_latest():
 
     assert result.exit_code == 0
     assert "Regression Report" in result.output
+
+
+def test_test_command_accepts_no_cache_flag():
+    result = runner.invoke(
+        app,
+        ["test", "examples/api-doc-writer", "--mode", "llm", "--provider", "mock", "--no-cache"],
+    )
+
+    assert result.exit_code == 0
+    assert "LLM Trigger Check" in result.output
+
+
+def test_test_command_no_cache_flag_in_help():
+    result = runner.invoke(app, ["test", "--help"])
+
+    assert result.exit_code == 0
+    assert "--no-cache" in result.output
+    assert "Disable LLM judge cache" in result.output
