@@ -52,42 +52,42 @@ ruff check --fix .
 
 ## Version Release Checklist
 
-发布新版本前必须完成以下检查，确保版本号一致性：
+Complete these checks before releasing a new version to ensure version consistency.
 
-### 必须同步的版本号位置
+### Version Locations to Sync
 
 1. **`pyproject.toml`** — `version = "x.y.z"`
 2. **`skillci/__init__.py`** — `__version__ = "x.y.z"`
 3. **`README.md`** — release badge: `release-vx.y.z`
 4. **`README_zh.md`** — release badge: `release-vx.y.z`
 
-### 配置文档检查
+### Config Documentation Check
 
-如果新版本涉及配置字段变更（新增、重命名、删除字段），需同步更新：
+If the release involves config field changes (add, rename, delete), sync these:
 
-- `README.md` 和 `README_zh.md` 的 Configuration 表格
-- 示例 `skillci.yaml` / `skillci.local.yaml` 代码块
-- 字段优先级说明（如有变更）
+- Configuration tables in `README.md` and `README_zh.md`
+- Example `skillci.yaml` / `skillci.local.yaml` code blocks
+- Field priority notes (if changed)
 
-### 发布流程
+### Release Flow
 
 ```bash
-# 1. 更新版本号（4 处）
+# 1. Bump version (4 locations)
 # pyproject.toml, skillci/__init__.py, README.md badge, README_zh.md badge
 
-# 2. 运行测试和 lint
+# 2. Run tests and lint
 python -m pytest -v
 ruff check .
 
-# 3. 提交
+# 3. Commit
 git add -A && git commit -m "chore: bump version to x.y.z"
 
-# 4. 删除旧 tag（如已存在）
+# 4. Delete old tag (if exists)
 git tag -d vx.y.z && git push origin :refs/tags/vx.y.z
 
-# 5. 创建新 tag
-git tag -a vx.y.z -m "Release vx.y.z: <简要说明>"
+# 5. Create new tag
+git tag -a vx.y.z -m "Release vx.y.z: <brief description>"
 
-# 6. 推送
+# 6. Push
 git push && git push --tags
 ```
