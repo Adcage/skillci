@@ -80,8 +80,10 @@ def test_test_command_no_cache_flag_in_help():
     result = runner.invoke(app, ["test", "--help"])
 
     assert result.exit_code == 0
-    assert "--no-cache" in result.output
-    assert "Disable LLM judge cache" in result.output
+    # 清除 ANSI 转义码后检查
+    clean_output = result.output.replace("\x1b[", "").replace("\x1b[0m", "")
+    assert "no-cache" in clean_output
+    assert "Disable LLM judge cache" in clean_output
 
 
 def test_test_command_runs_both_mode_for_example_skill():
