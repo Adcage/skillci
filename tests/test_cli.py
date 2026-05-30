@@ -77,11 +77,14 @@ def test_test_command_accepts_no_cache_flag():
 
 
 def test_test_command_no_cache_flag_in_help():
+    import re
+
     result = runner.invoke(app, ["test", "--help"])
 
     assert result.exit_code == 0
-    # 清除 ANSI 转义码后检查
-    clean_output = result.output.replace("\x1b[", "").replace("\x1b[0m", "")
+    # 使用正则表达式清除所有 ANSI 转义码
+    ansi_escape = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
+    clean_output = ansi_escape.sub("", result.output)
     assert "no-cache" in clean_output
     assert "Disable LLM judge cache" in clean_output
 
