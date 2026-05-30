@@ -4,7 +4,7 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-yellow.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-48%20passed-brightgreen.svg)](#testing)
 [![Ruff](https://img.shields.io/badge/Lint-Ruff-brightgreen.svg)](https://docs.astral.sh/ruff/)
-[![Release](https://img.shields.io/badge/release-v0.1.0-orange.svg)](https://github.com/your-username/skillci/releases)
+[![Release](https://img.shields.io/badge/release-v0.1.2-orange.svg)](https://github.com/your-username/skillci/releases)
 
 English | [中文](README_zh.md)
 
@@ -257,6 +257,7 @@ Regression Report
 | `mode` | string | `local` | Test mode: `local`, `llm`, `both` |
 | `judge.provider` | string | `openai` | LLM provider |
 | `judge.base_url` | string | `null` | Custom API endpoint |
+| `judge.api_key` | string | `null` | API key, overrides `OPENAI_API_KEY` when set |
 | `judge.model` | string | `gpt-4.1-mini` | Model name |
 | `judge.temperature` | float | `0` | Temperature |
 | `judge.timeout` | int | `30` | Timeout in seconds |
@@ -283,11 +284,14 @@ If you want to keep sensitive settings (like API keys) out of version control, c
 # skillci.local.yaml (not committed)
 judge:
   provider: openai
+  api_key: sk-...
   base_url: https://your-api.com/v1
   model: your-model-name
 ```
 
 The local config overrides any matching fields in `skillci.yaml`. You don't need to change any commands — it loads automatically.
+
+**API key priority:** `judge.api_key` in `skillci.local.yaml` > `judge.api_key` in `skillci.yaml` > `OPENAI_API_KEY`
 
 ### LLM Mode
 
