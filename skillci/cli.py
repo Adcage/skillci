@@ -6,7 +6,7 @@ from rich.console import Console
 from skillci import __version__
 from skillci.compare import run_compare
 from skillci.report.json_report import render_json
-from skillci.report.markdown_report import render_markdown
+from skillci.report.markdown_report import render_github_markdown, render_markdown
 from skillci.report.terminal_report import (
     render_compare_report,
     render_report,
@@ -109,16 +109,19 @@ def test(
 @app.command()
 def report(
     skill_path: Path,
-    format: str = typer.Option("markdown", help="Report format. v0.1 supports markdown."),
+    format: str = typer.Option("markdown", help="Report format: markdown or github."),
     output: Path | None = typer.Option(None, help="Optional output file path."),  # noqa: B008
 ) -> None:
     """Generate a SkillCI report."""
-    if format != "markdown":
-        typer.echo("Only --format markdown is supported in v0.1.", err=True)
-        raise typer.Exit(2)
-
     current_report = run_local_test(skill_path)
-    content = render_markdown(current_report)
+
+    if format == "markdown":
+        content = render_markdown(current_report)
+    elif format == "github":
+        content = render_github_markdown(current_report)
+    else:
+        typer.echo(f"Unsupported format: {format}. Use markdown or github.", err=True)
+        raise typer.Exit(2)
 
     if output:
         output.parent.mkdir(parents=True, exist_ok=True)

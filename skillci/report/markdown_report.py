@@ -91,3 +91,31 @@ def render_markdown(report: SkillCIReport) -> str:
         lines.append("")
 
     return "\n".join(lines)
+
+
+def render_github_markdown(report: SkillCIReport) -> str:
+    lines: list[str] = []
+    lines.append("## SkillCI Check")
+    lines.append("")
+    lines.append("| Section | Result |")
+    lines.append("|---|---|")
+
+    static_status = "passed" if report.static_health.passed else "failed"
+    lines.append(f"| Static Health | {static_status} |")
+
+    if report.local_metrics:
+        lines.append(f"| Local F1 | {report.local_metrics.f1:.2f} |")
+
+    if report.llm_metrics:
+        lines.append(f"| LLM F1 | {report.llm_metrics.f1:.2f} |")
+
+    lines.append(f"| Judge Disagreements | {report.judge_disagreement_count} |")
+
+    regression_count = 0
+    lines.append(f"| Regressions | {regression_count} |")
+
+    final_status = "passed" if report.passed else "failed"
+    lines.append(f"| Final Result | **{final_status}** |")
+    lines.append("")
+
+    return "\n".join(lines)

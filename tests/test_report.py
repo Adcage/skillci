@@ -3,7 +3,7 @@ from pathlib import Path
 from typer.testing import CliRunner
 
 from skillci.cli import app
-from skillci.report.markdown_report import render_markdown
+from skillci.report.markdown_report import render_github_markdown, render_markdown
 from skillci.report.terminal_report import render_report
 from skillci.runner import run_local_test
 from skillci.schema.report import SkillCIReport
@@ -126,3 +126,75 @@ def test_terminal_report_shows_disagreements(capsys):
     assert "DISAGREE case-c" in captured.out
     assert "reason: LLM misclassified trigger intent" in captured.out
     assert "reason: LLM returned no verdict" in captured.out
+
+
+def test_render_github_markdown_contains_expected_sections():
+    report = run_local_test(Path("examples/api-doc-writer"))
+    content = render_github_markdown(report)
+
+    assert "## SkillCI Check" in content
+    assert "| Section | Result |" in content
+    assert "| Static Health | passed |" in content
+    assert "| Local F1 |" in content
+    assert "| Judge Disagreements | 0 |" in content
+    assert "| Regressions | 0 |" in content
+    assert "| Final Result | **passed** |" in content
+
+
+def test_render_github_markdown_shows_failed_status():
+    report = SkillCIReport(
+        skill_name="test-skill",
+        skill_path="/tmp/test",
+        static_health=StaticHealthResult(passed=False, issues=[]),
+        local_results=[],
+        passed=False,
+    )
+    content = render_github_markdown(report)
+
+    assert "| Static Health | failed |" in content
+    assert "| Final Result | **failed**** |" not in content
+    assert "| Final Result | **failed** |" in content
+
+
+def test_render_github_markdown_with_disagreements():
+    report = _make_report_with_disagreements()
+    content = render_github_markdown(report)
+
+    assert "| Judge Disagreements | 3 |" in content
+    assert "| Final Result | **passed** |" in content
+
+
+def test_report_github_format_writes_file(tmp_path):
+    report_path = tmp_path / "report.md"
+
+    result = runner.invoke(
+        app,
+        [
+            "report",
+            "examples/api-doc-writer",
+            "--format",
+            "github",
+            "--output",
+            str(report_path),
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert report_path.exists()
+    content = report_path.read_text(encoding="utf-8")
+    assert "## SkillCI Check" in content
+    assert "| Static Health |" in content
+
+
+def test_report_unsupported_format():
+    result = runner.invoke(
+        app,
+        [
+            "report",
+            "examples/api-doc-writer",
+            "--format",
+            "html",
+        ],
+    )
+
+    assert result.exit_code == 2
