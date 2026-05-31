@@ -2,7 +2,7 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-yellow.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-48%20passed-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-167%20passed-brightgreen.svg)](#testing)
 [![Ruff](https://img.shields.io/badge/Lint-Ruff-brightgreen.svg)](https://docs.astral.sh/ruff/)
 [![Release](https://img.shields.io/badge/release-v0.2.0-orange.svg)](https://github.com/your-username/skillci/releases)
 
@@ -59,7 +59,7 @@ SkillCI 的目标是：**让 Agent Skills 像代码一样可以被测试、回�
 
 ```bash
 # Install
-pip install -e .[dev]
+pip install -e .[dev,llm]
 
 # Lint a skill
 skillci lint examples/api-doc-writer
@@ -67,8 +67,11 @@ skillci lint examples/api-doc-writer
 # Run local trigger test
 skillci test examples/api-doc-writer --mode local
 
-# Run LLM trigger test (mock)
-skillci test examples/api-doc-writer --mode llm --provider mock
+# Run LLM trigger test (requires OPENAI_API_KEY)
+skillci test examples/api-doc-writer --mode llm
+
+# Run both local and LLM together
+skillci test examples/api-doc-writer --mode both
 
 # Save baseline snapshot
 skillci snapshot examples/api-doc-writer
@@ -76,8 +79,8 @@ skillci snapshot examples/api-doc-writer
 # Compare with baseline
 skillci test examples/api-doc-writer --mode local --compare latest
 
-# Generate markdown report
-skillci report examples/api-doc-writer --format markdown --output report.md
+# Generate GitHub PR report
+skillci report examples/api-doc-writer --format github
 ```
 
 ---
@@ -229,6 +232,38 @@ Regression Report
   No behavior changes detected.
 ```
 
+### Both Mode
+
+```
+$ skillci test examples/api-doc-writer --mode both
+
+SkillCI Report: api-doc-writer
+Static Health
+  OK no issues found
+
+Trigger Check
+  PASS should_trigger_for_spring_controller: expected=True, actual=True, score=0.4786
+  PASS should_trigger_for_fastapi_routes: expected=True, actual=True, score=0.57
+  PASS should_not_trigger_for_sql_optimization: expected=False, actual=False, score=0.0
+  PASS should_not_trigger_for_css_explanation: expected=False, actual=False, score=0.0
+
+LLM Trigger Check
+  PASS should_trigger_for_spring_controller: expected=True, actual=True, confidence=0.92
+  PASS should_trigger_for_fastapi_routes: expected=True, actual=True, confidence=0.92
+  PASS should_not_trigger_for_sql_optimization: expected=False, actual=False, confidence=0.88
+  PASS should_not_trigger_for_css_explanation: expected=False, actual=False, confidence=0.88
+
+Summary
+  Local Precision: 1.0, Recall: 1.0, F1: 1.0
+
+LLM Summary
+  LLM Precision: 1.0, Recall: 1.0, F1: 1.0
+  Average Confidence: 0.9
+
+Result
+  passed
+```
+
 ---
 
 ## CLI Commands
@@ -238,12 +273,14 @@ Regression Report
 | `skillci init <path>` | Generate a starter `skillci.yaml` for a Skill directory |
 | `skillci lint <path>` | Run static health checks |
 | `skillci test <path> --mode local` | Run local trigger test |
-| `skillci test <path> --mode llm --provider openai` | Run LLM trigger test |
-| `skillci test <path> --mode llm --provider mock` | Run LLM test with mock provider |
+| `skillci test <path> --mode llm` | Run LLM trigger test |
+| `skillci test <path> --mode both` | Run local and LLM together |
 | `skillci test <path> --json` | Output JSON report |
+| `skillci test <path> --no-cache` | Disable LLM cache |
 | `skillci test <path> --compare latest` | Compare with baseline snapshot |
 | `skillci snapshot <path>` | Save baseline snapshot |
 | `skillci report <path> --format markdown` | Generate markdown report |
+| `skillci report <path> --format github` | Generate PR-friendly report |
 
 ---
 
@@ -261,6 +298,7 @@ Regression Report
 | `judge.model` | string | `gpt-4.1-mini` | Model name |
 | `judge.temperature` | float | `0` | Temperature |
 | `judge.timeout` | int | `30` | Timeout in seconds |
+| `judge.cache` | bool | `true` | Enable LLM result cache |
 | `thresholds.trigger_score` | float | `0.6` | Local trigger threshold |
 | `thresholds.trigger_f1` | float | `0.8` | F1 pass threshold |
 | `thresholds.llm_confidence` | float | `0.7` | LLM confidence threshold |
@@ -322,12 +360,12 @@ export OPENAI_BASE_URL=https://your-api.com/v1
 ## Testing
 
 ```bash
-pip install -e .[dev]
+pip install -e .[dev,llm]
 python -m pytest -v
 ruff check .
 ```
 
-Current status: **48 tests passing**, **ruff clean**.
+Current status: **167 tests passing**, **ruff clean**.
 
 ---
 
@@ -339,8 +377,6 @@ See [GitHub Actions Guide](docs/github-actions.md) for CI/CD setup instructions.
 
 ## Current Limitations
 
-- **`both` mode is planned** — currently only `local` and `llm` modes are supported
-- **Judge cache is planned** — LLM results are not cached yet, each run calls the API
 - **LLM confidence is self-reported** — the confidence score comes from the model, not from logprobs or multi-run consensus
 - **Local trigger scoring is heuristic** — based on word coverage, not semantic understanding
 - **Chinese tokenization is character-level** — no word segmentation library is used
@@ -353,10 +389,8 @@ See [GitHub Actions Guide](docs/github-actions.md) for CI/CD setup instructions.
 - Anthropic / Gemini / Ollama provider support
 - logprobs-based confidence
 - Multi-run consistency check (`--runs N`)
-- Judge cache
-- Both mode (local + LLM comparison)
 - HTML report
-- GitHub Action
+- GitHub Action (Marketplace)
 - Skill Health Score
 - Batch testing (multiple skills)
 
